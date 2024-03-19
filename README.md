@@ -9,4 +9,6 @@ pipelines:
 
 I have used Azure/container-scan for scanning the images which internally uses trivy and dockle.
 
-For more informations: https://github.com/Azure/container-scan
+For more informations: 
+- https://github.com/Azure/container-scan
+- https://github.com/marketplace/actions/notify-microsoft-teams
