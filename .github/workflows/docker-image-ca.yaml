@@ -18,10 +18,10 @@ jobs:
            image-name: CONTAINER_REGISTRY_URL/nginx-server-image:${{ github.sha }}
            username: ${{ secrets.REGISTRY_USERNAME }}
            password: ${{ secrets.REGISTRY_PASSWORD }}
-           
+
        - name: "Bind-Output"
          id: "bind-output"
-         run: echo results=steps.scan-image.outputs >> "GITHUB_OUTPUT"
+         run: echo "results="${{steps.scan-image.outputs}} >> "$GITHUB_OUTPUT"
         
   Notification:
         name: Send Notification on Failure
