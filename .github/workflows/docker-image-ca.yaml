@@ -5,13 +5,37 @@ on:
 env:
    CONTAINER_REGISTRY_URL: ${{secrets.CONTAINER_REGISTRY_URL}}
 jobs:
-   Assurance-Scan:
+  Assurance-Scan:
      environment: Development
      runs-on: "ubuntu-latest"
+     outputs:
+       scanner-output: ${{ steps.bind-output.outputs.results }}
      steps:
-       - name: "Scan Image"
+       - name: "Scan-Image"
+         id: "scan-image"
          uses: azure/container-scan@v0
          with:
-           image-name: CONTAINER_REGISTRY_URL/my-image:${{ github.sha }}
+           image-name: CONTAINER_REGISTRY_URL/nginx-server-image:${{ github.sha }}
            username: ${{ secrets.REGISTRY_USERNAME }}
            password: ${{ secrets.REGISTRY_PASSWORD }}
+           
+       - name: "Bind-Output"
+         id: "bind-output"
+         run: echo results=steps.scan-image.outputs >> "GITHUB_OUTPUT"
+        
+  Notification:
+        name: Send Notification on Failure
+        runs-on: "ubuntu-latest"
+        needs: Assurance-Scan
+        steps:
+          - name: Microsoft Teams Notification
+            uses: skitionek/notify-microsoft-teams@master
+            with:
+              webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
+              raw: >-
+                {
+                  "@type": "MessageCard",
+                  "@context": "http://schema.org/extensions",
+                  "title": "Results"
+                  "output" : "${{needs.Assurance-Scan.outputs.scanner-output}}"
+                }
