@@ -1,0 +1,46 @@
+name: Docker-Image-Deploy
+on:
+  push:
+    branches: 
+      - main
+    paths:
+      - "DockerFiles/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "DockerFiles/**"
+  workflow_dispatch:
+env:
+   CONTAINER_REGISTRY_URL: ${{secrets.CONTAINER_REGISTRY_URL}}
+jobs:
+  image-build-scam:
+    environment: Development
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: workdirectory checkout
+        uses: actions/checkout@v3
+
+      - name: docker image build
+        run: docker build . -t ${{ env.CONTAINER_REGISTRY_URL }}/nginx-server-image:${{ github.sha }} -f DockerFiles/ngnix-server.Dockerfile
+  
+      - name: image-scan
+        if: github.event_name == 'pull_request'
+        uses: Azure/container-scan@v0
+        with:
+          image-name: ${{ env.CONTAINER_REGISTRY_URL }}/nginx-server-image:${{ github.sha }}
+
+  image-deploy:
+      if: github.event_name != 'pull_request' && github.ref == 'ref/heads/main'
+      environment: Development
+      runs-on: "ubuntu-latest"
+      steps:
+        - name: Azure Container Registry login
+          uses: Azure/docker-login@v1
+          with:
+            login-server: ${{ env.CONTAINER_REGISTRY_URL }}
+            username: ${{ secrets.REGISTRY_USERNAME }}
+            password: ${{ secrets.REGISTRY_PASSWORD }}
+        
+        - name: Push image
+          run: docker push ${{ env.CONTAINER_REGISTRY_URL }}/nginx-server-image:${{ github.sha }}
