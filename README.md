@@ -5,7 +5,7 @@ This repo container a sample docker image file with nginx server
 
 pipelines:
 1. To Scan and securely deploy the images to ACR
-2. Continous Assurance Scan for the images
+2. Continous Assurance Scan for the images and send notification to teams channel.
 
 I have used Azure/container-scan for scanning the images which internally uses trivy and dockle.
 
